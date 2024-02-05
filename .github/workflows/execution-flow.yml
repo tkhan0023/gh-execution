@@ -1,39 +1,77 @@
-name: Debug Workflow
-
+name: Website Deployment
 on:
   push:
-    branches: 
+    branches:
       - main
- 
-
+  workflow_dispatch:
 jobs:
-  debug:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Get code
         uses: actions/checkout@v3
-
-      - name: Debug env
-        run: |
-          echo "BRANCH: $GITHUB_REF"
-          echo "SHA: $GITHUB_SHA"
-
-      - name: Install deps 
-        run: npm ci --verbose
-
-      - name: Test job
-        run: |
-          echo "Running test..."
-          echo "Event payload: $github.event.head_commit.message"
-
-      - name: Upload log
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with: 
-          name: logs
-          path: logs
-
-      - name: Manual trigger
-        run: echo "Manually triggered!"
-        if: github.event_name == 'workflow_dispatch'
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Test code
+        run: npm run test
+      - name: Upload test report
+        
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        id: build-website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-files
+      - name: Output contents
+        run: ls
+      - name: Deploy
+        run: echo "Deploying..."
