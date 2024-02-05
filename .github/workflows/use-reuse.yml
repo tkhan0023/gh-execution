@@ -80,7 +80,7 @@
 
 
 
-name: Using reusing yaml
+name: Using reusing yaml workflow
 on:
   push:
     branches:
