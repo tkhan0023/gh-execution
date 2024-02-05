@@ -13,6 +13,12 @@ jobs:
          matrix:
             node-version: [12,4,16]
             operating-system: [ubuntu-latest,windows-latest]
+            include: 
+                - node-verion: 18
+                  operating-system: ubuntu-latest
+            exclude:
+                - node-verion: 12
+                  operating-system: windows-latest
         runs-on: ${{matrix.operating-system}}
         steps:
             - name: Get code
