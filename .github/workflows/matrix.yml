@@ -11,7 +11,7 @@ jobs:
         continue-on-error: true
         strategy:
          matrix:
-            node-version: [12,4,16]
+            node-version: [12,14,16]
             operating-system: [ubuntu-latest,windows-latest]
             include: 
                 - node-verion: 18
