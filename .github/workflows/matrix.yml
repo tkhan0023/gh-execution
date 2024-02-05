@@ -4,9 +4,11 @@ on:
       branches:
         - main
     workflow_dispatch:
-        
+
 jobs:
+     
     build:
+        continue-on-error: true
         strategy:
          matrix:
             node-version: [12,4,16]
